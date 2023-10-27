@@ -1,16 +1,23 @@
 const request = require('request');
-const breedName = process.argv[2];
-const URL = `https://api.thecatapi.com/v1/breeds/search?q=${breedName}`;
-try {
-  request(URL, function (error, response, body) {
-    const data = JSON.parse(body);
-  if (error || data.length === 0) {
-    error = "Invalid input: cannot find data with that value"
-    throw error;
-  }
-  console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-  console.log('body:', body); // Print the HTML for the Google homepage.
-});
-} catch (error) {
-  console.log(`Error: ${error}`);
-}
+
+const fetchBreedDescription = (breedName, callback) => {
+  const URL = `https://api.thecatapi.com/v1/breeds/search?q=${breedName}`;
+  request(URL, function(error, response, body) {
+    if (!error && response.statusCode === 200 && body.length > 2) {
+      const data = JSON.parse(body);
+      // console.log(`Body: ${body.length}`);
+      // console.log(`Response: ${response.statusCode}`);
+      callback(error, data[0].description);
+    } else if (response.statusCode === 400) {
+      error = `Something wrong with URL: Bad request: ${response.statusCode}`;
+      callback(error, null);
+    } else {
+      error = `No data found with given value`;
+      callback(error, null);
+    }
+  });
+};
+
+// const breedDescription = fetchBreedDescription('Siberian');
+// console.log(breedDescription);
+module.exports = { fetchBreedDescription };
